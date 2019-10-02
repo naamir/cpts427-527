@@ -7,10 +7,15 @@
 #define SHDW_LINE_LEN 256
 #define WORD_LEN 80
 
+int salt_i = 0;
+char *salt_arr[50];
+char *hash_array[50];
+
 int main(){
 
 	FILE *shadow;
 	FILE *dict;
+	
 
 	shadow = fopen("shadow", "r");
 	if(shadow == NULL){
@@ -33,7 +38,9 @@ int main(){
 		if(strcmp(shdw_hash, "*")!=0 && strcmp(shdw_hash, "!")!=0){
 			token = strtok(shdw_hash, "$");
 			token = strtok(NULL, "$");
-			printf("  salt: %s\n", token);
+			salt_arr[salt_i] = token;
+			printf("  salt %i: %s\n", salt_i, salt_arr[salt_i]);
+			salt_i++;
 			token = strtok(NULL, "$");
 			printf("  hash: %s\n", token);
 			num_accounts++;
@@ -44,6 +51,8 @@ int main(){
 			//////////////////////
 		}
 	}
+	for (int i = 0; i < salt_i; i++)
+		printf("  salt: %s\n", salt_arr[salt_i]);
 
 	char word[WORD_LEN];
 	while(fgets(word, WORD_LEN, dict)!=NULL){
