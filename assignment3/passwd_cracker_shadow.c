@@ -7,15 +7,19 @@
 #define SHDW_LINE_LEN 256
 #define WORD_LEN 80
 
+int uid_i = 0;
 int salt_i = 0;
 int hash_i = 0;
 char *salt_arr[20];
 char salt_ch_arr[512];
 char *hash_arr[20];
-char hash_ch_arr[512];
-char temp[512];
+char hash_ch_arr[2048];
+char *uid_arr[20];
+char uid_ch_arr[512];
 
-int tokenize_salt(char *arr)
+char *hash;
+
+int tokenize(char *arr, char *type)
 {
     int i = 0;
     char *s;
@@ -24,23 +28,9 @@ int tokenize_salt(char *arr)
     s = strtok(arr, "$");
     while (s != NULL)
 	{
-        salt_arr[i] = s;    // store pointer to token in *name[] array  
-        s = strtok(0, "$");
-        i++;
-	}
-    return i;
-}
-
-int tokenize_hash(char *arr)
-{
-    int i = 0;
-    char *s;
-
-    //strcpy(temp, arr);
-    s = strtok(arr, "$");
-    while (s != NULL)
-	{
-        hash_arr[i] = s;    // store pointer to token in *name[] array  
+        if (strcmp(type, "salt") == 0) salt_arr[i] = s;
+		if (strcmp(type, "hash") == 0) hash_arr[i] = s;
+		if (strcmp(type, "uid") == 0) uid_arr[i] = s;
         s = strtok(0, "$");
         i++;
 	}
@@ -72,6 +62,9 @@ int main(){
 		printf("ID: %s\n", token);
 		char *shdw_hash = strtok(NULL, ":");
 		if(strcmp(shdw_hash, "*")!=0 && strcmp(shdw_hash, "!")!=0){
+			strcat(uid_ch_arr, token);
+			strcat(uid_ch_arr, "$");
+			printf("  uid: %s\n", token);
 			token = strtok(shdw_hash, "$");
 			token = strtok(NULL, "$");
 			//////////////////////
@@ -93,17 +86,23 @@ int main(){
 	printf("all salts: %s\n", salt_ch_arr);
 	printf("all hashes: %s\n", hash_ch_arr);
 
-	salt_i = tokenize_salt(salt_ch_arr);
-	for (int i=0; i < salt_i; i++)
-		printf("salt token:%i %s\n", i, salt_arr[i]);
-	hash_i = tokenize_hash(hash_ch_arr);
-	for (int i=0; i < hash_i; i++)
-		printf("hash token:%i %s\n", i, hash_arr[i]);
-	
+	salt_i = tokenize(salt_ch_arr, "salt");
+	hash_i = tokenize(hash_ch_arr, "hash");
+	uid_i = tokenize(uid_ch_arr, "uid");
+	for (int i=0; i < uid_i; i++)
+	{
+		printf("uid %i %s ", i, uid_arr[i]);
+		printf("salt %s ", salt_arr[i]);
+		printf("hash %s\n", hash_arr[i]);
+	}
 
 	char word[WORD_LEN];
+	char salt[WORD_LEN];
+	char full_hash[2048];
+
+	strcpy(salt, "$6$");
 	while(fgets(word, WORD_LEN, dict)!=NULL){
-		for(int i=0; i<num_accounts; i++){
+		word[strlen(word)-1] = '\0';
 			//////////////////////
 			// Part B: 
 			//  For each account, compute
@@ -117,6 +116,24 @@ int main(){
 			//  you've successfully cracked it,
 			//  print the password and userid
 			//////////////////////
+		for (int n=0; n < num_accounts; n++)
+		{
+			strcat(salt, salt_arr[n]);
+			hash = crypt(word, salt);
+			strcpy(full_hash, salt);
+			strcat(full_hash, "$");
+			strcat(full_hash, hash_arr[n]);
+
+			
+			
+			if (strcmp(hash, full_hash) == 0)
+			{
+				printf("match found! For uid %s\n", uid_arr[n]);
+				printf("word: %s hash   : %s\n ourhash: %s\n", word, hash, full_hash);
+				//getchar();
+			}
+			strcpy(salt, "$6$"); // clear
 		}
+		
 	}
 }
