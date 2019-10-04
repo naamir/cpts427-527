@@ -8,8 +8,44 @@
 #define WORD_LEN 80
 
 int salt_i = 0;
-char *salt_arr[50];
-char *hash_array[50];
+int hash_i = 0;
+char *salt_arr[20];
+char salt_ch_arr[512];
+char *hash_arr[20];
+char hash_ch_arr[512];
+char temp[512];
+
+int tokenize_salt(char *arr)
+{
+    int i = 0;
+    char *s;
+
+    //strcpy(temp, arr);
+    s = strtok(arr, "$");
+    while (s != NULL)
+	{
+        salt_arr[i] = s;    // store pointer to token in *name[] array  
+        s = strtok(0, "$");
+        i++;
+	}
+    return i;
+}
+
+int tokenize_hash(char *arr)
+{
+    int i = 0;
+    char *s;
+
+    //strcpy(temp, arr);
+    s = strtok(arr, "$");
+    while (s != NULL)
+	{
+        hash_arr[i] = s;    // store pointer to token in *name[] array  
+        s = strtok(0, "$");
+        i++;
+	}
+    return i;
+}
 
 int main(){
 
@@ -38,21 +74,32 @@ int main(){
 		if(strcmp(shdw_hash, "*")!=0 && strcmp(shdw_hash, "!")!=0){
 			token = strtok(shdw_hash, "$");
 			token = strtok(NULL, "$");
-			salt_arr[salt_i] = token;
-			printf("  salt %i: %s\n", salt_i, salt_arr[salt_i]);
-			salt_i++;
-			token = strtok(NULL, "$");
-			printf("  hash: %s\n", token);
-			num_accounts++;
 			//////////////////////
 			// Part A: 
 			//  These values need to 
 			//  be stored in an array
 			//////////////////////
+			strcat(salt_ch_arr, token);
+			strcat(salt_ch_arr, "$");
+			printf("  salt: %s\n", token);
+			token = strtok(NULL, "$");
+			strcat(hash_ch_arr, token);
+			strcat(hash_ch_arr, "$");
+			printf("  hash: %s\n", token);
+			num_accounts++;
 		}
 	}
-	for (int i = 0; i < salt_i; i++)
-		printf("  salt: %s\n", salt_arr[salt_i]);
+
+	printf("all salts: %s\n", salt_ch_arr);
+	printf("all hashes: %s\n", hash_ch_arr);
+
+	salt_i = tokenize_salt(salt_ch_arr);
+	for (int i=0; i < salt_i; i++)
+		printf("salt token:%i %s\n", i, salt_arr[i]);
+	hash_i = tokenize_hash(hash_ch_arr);
+	for (int i=0; i < hash_i; i++)
+		printf("hash token:%i %s\n", i, hash_arr[i]);
+	
 
 	char word[WORD_LEN];
 	while(fgets(word, WORD_LEN, dict)!=NULL){
